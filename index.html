@@ -143,17 +143,21 @@ scene.add(sunMesh);
     document.body.style.cursor = pointerActive ? "none" : "default";
   });
 
- document.addEventListener("mousemove", e => {
+document.addEventListener("mousemove", e => {
   if (!pointerActive) return;
   yaw -= e.movementX * 0.002;
   pitch -= e.movementY * 0.002;
   pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
-  camera.position.set(
-    player.position.x - Math.sin(yaw) * 6 * Math.cos(pitch),
-    player.position.y + 4 + Math.sin(pitch) * 6,
-    player.position.z - Math.cos(yaw) * 6 * Math.cos(pitch)
+
+  camera.position.x = player.position.x - Math.sin(yaw) * 6;
+  camera.position.y = player.position.y + 2 + Math.sin(pitch) * 3;
+  camera.position.z = player.position.z - Math.cos(yaw) * 6;
+
+  camera.lookAt(
+    player.position.x + Math.sin(yaw) * Math.cos(pitch),
+    player.position.y + 2 + Math.sin(pitch),
+    player.position.z + Math.cos(yaw) * Math.cos(pitch)
   );
-  camera.lookAt(player.position);
 });
 
   /* ===================== MOVEMENT ===================== */
@@ -290,6 +294,7 @@ scene.add(sunMesh);
 
 </body>
 </html>
+
 
 
 
