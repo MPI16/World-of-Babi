@@ -82,6 +82,71 @@ body {
   <p>This world was made for someone special.</p>
   <a href="index.html">← Back</a>
 </div>
+<script>
+/* ===============================
+   SIMPLE CAMERA-STYLE MOVEMENT
+   (ADDED ONLY – DOES NOT MODIFY BASE)
+================================ */
 
+let posX = 0;
+let posY = 0;
+let yaw = 0;
+
+const speed = 6;
+const card = document.querySelector('.card');
+
+// Hide cursor for immersion
+document.body.style.cursor = "none";
+
+// Mouse look
+document.addEventListener("mousemove", (e) => {
+  yaw += e.movementX * 0.002;
+  updateView();
+});
+
+// Keyboard movement
+const keys = {};
+document.addEventListener("keydown", e => keys[e.code] = true);
+document.addEventListener("keyup", e => keys[e.code] = false);
+
+function updateMovement() {
+  const forwardX = Math.sin(yaw);
+  const forwardY = Math.cos(yaw);
+
+  if (keys.KeyW) {
+    posX -= forwardX * speed;
+    posY -= forwardY * speed;
+  }
+  if (keys.KeyS) {
+    posX += forwardX * speed;
+    posY += forwardY * speed;
+  }
+  if (keys.KeyA) {
+    posX += forwardY * speed;
+    posY -= forwardX * speed;
+  }
+  if (keys.KeyD) {
+    posX -= forwardY * speed;
+    posY += forwardX * speed;
+  }
+
+  updateView();
+  requestAnimationFrame(updateMovement);
+}
+
+function updateView() {
+  document.body.style.backgroundPosition =
+    `${posX}px ${posY}px`;
+
+  card.style.transform =
+    `translate(${posX * 0.2}px, ${posY * 0.2}px) rotateY(${yaw}rad)`;
+}
+
+// Start movement loop
+updateMovement();
+</script>
+
+  
 </body>
 </html>
+
