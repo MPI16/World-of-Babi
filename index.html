@@ -34,6 +34,11 @@
     new THREE.MeshBasicMaterial({ color: 0x87ceeb, side: THREE.BackSide })
   );
   scene.add(sky);
+  const sunGeometry = new THREE.SphereGeometry(10, 32, 32);
+const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
+sunMesh.position.set(100, 100, 50);
+scene.add(sunMesh);
 
   /* ===================== LIGHT / DAY-NIGHT ===================== */
   const ambient = new THREE.AmbientLight(0xffffff, 0.4);
@@ -139,11 +144,15 @@
   });
 
   document.addEventListener("mousemove", e => {
-    if (!pointerActive) return;
-    yaw -= e.movementX * 0.002;
-    pitch -= e.movementY * 0.002;
-    pitch = Math.max(-0.6, Math.min(0.6, pitch));
-  });
+  if (!pointerActive) return;
+  yaw -= e.movementX * 0.002;
+  pitch -= e.movementY * 0.002;
+  pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+  camera.position.x = player.position.x - Math.sin(yaw) * 6 * Math.cos(pitch);
+  camera.position.y = player.position.y + 4 + Math.sin(pitch) * 6;
+  camera.position.z = player.position.z - Math.cos(yaw) * 6 * Math.cos(pitch);
+  camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
+});
 
   /* ===================== MOVEMENT ===================== */
   const keys = {};
@@ -278,3 +287,4 @@
 
 </body>
 </html>
+
