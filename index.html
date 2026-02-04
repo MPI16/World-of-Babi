@@ -118,6 +118,35 @@ function createHouse(x, z, color, link) {
   house.add(door);
 
   house.position.set(x, 0, z);
+  /* ===== HOUSE DETAIL ADDITIONS ===== */
+
+// Stone base
+const foundation = new THREE.Mesh(
+  new THREE.BoxGeometry(9.5, 1, 9.5),
+  new THREE.MeshStandardMaterial({ color: 0x3b3b3b })
+);
+foundation.position.y = 0.5;
+house.add(foundation);
+
+// Windows
+const windowMat = new THREE.MeshStandardMaterial({
+  color: 0x99ccff,
+  emissive: 0x224466,
+  emissiveIntensity: 0.6
+});
+
+const windowGeo = new THREE.BoxGeometry(1.2, 1.2, 0.1);
+
+const win1 = new THREE.Mesh(windowGeo, windowMat);
+win1.position.set(-2.2, 2.8, 4.05);
+house.add(win1);
+
+const win2 = win1.clone();
+win2.position.x = 2.2;
+house.add(win2);
+
+// Slight upscale
+house.scale.set(1.2, 1.2, 1.2);
   scene.add(house);
 
   return door;
@@ -307,8 +336,37 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
+  /* ===================== CAMERA PITCH FIX (HARD OVERRIDE) ===================== */
+const cameraPivot = new THREE.Object3D();
+scene.add(cameraPivot);
+cameraPivot.add(camera);
+
+// Attach camera pivot to player
+cameraPivot.position.copy(player.position);
+
+const _oldAnimate = animate;
+animate = function () {
+  _oldAnimate();
+
+  // Follow player
+  cameraPivot.position.lerp(player.position, 0.15);
+
+  // Apply rotation AFTER everything else
+  cameraPivot.rotation.y = yaw;
+  cameraPivot.rotation.x = pitch;
+};
+
+  movementOverride();
+/* ===================== DISABLE BASE MOVEMENT (ADD-ONLY FIX) ===================== */
+const originalAddScaledVector = player.position.addScaledVector;
+player.position.addScaledVector = function () {
+  // Ignore base movement — override loop controls motion
+};
+
 </script>
 
 </body>
 </html>
+
 
