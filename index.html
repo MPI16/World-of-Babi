@@ -151,12 +151,10 @@ document.addEventListener("mousemove", e => {
   pitch -= e.movementY * 0.002;
   pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
 
-  cameraTarget.x = player.position.x + Math.sin(yaw) * Math.cos(pitch) * 6;
-  cameraTarget.y = player.position.y + 2 + Math.sin(pitch) * 6;
-  cameraTarget.z = player.position.z + Math.cos(yaw) * Math.cos(pitch) * 6;
-
-  camera.position.copy(cameraTarget);
-  camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
+  camera.rotation.set(pitch, yaw, 0, 'YXZ');
+  camera.position.x = player.position.x - Math.sin(yaw) * 6;
+  camera.position.y = player.position.y + 2;
+  camera.position.z = player.position.z - Math.cos(yaw) * 6;
 });
 
   /* ===================== MOVEMENT ===================== */
@@ -173,8 +171,7 @@ document.addEventListener("mousemove", e => {
   /* ===================== ANIMATION LOOP ===================== */
   function animate() {
     requestAnimationFrame(animate);
-   camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
-
+camera.rotation.set(pitch, yaw, 0, 'YXZ');
   renderer.render(scene, camera);
 }
 
@@ -296,6 +293,7 @@ document.addEventListener("mousemove", e => {
 
 </body>
 </html>
+
 
 
 
