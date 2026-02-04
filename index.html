@@ -1,171 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>World of Babi</title>
 
 <style>
 html, body {
   margin: 0;
   overflow: hidden;
-  background: #000;
+  background: #87ceeb;
+  font-family: sans-serif;
 }
-canvas {
-  display: block;
-}
-#fade {
+#start {
   position: fixed;
   inset: 0;
-  background: white;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.6s ease;
+  background: #87ceeb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  cursor: pointer;
   z-index: 10;
 }
 </style>
 </head>
 
 <body>
-<div id="fade"></div>
+<div id="start">Click to Start 🌞</div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
 <script>
-/* ===================== BASIC SETUP ===================== */
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(devicePixelRatio);
-document.body.appendChild(renderer.domElement);
+document.getElementById("start").onclick = () => {
+  document.getElementById("start").remove();
+  init();
+};
 
-/* ===================== SKY (PRO) ===================== */
-const skyGeo = new THREE.SphereGeometry(500, 32, 32);
-const skyMat = new THREE.ShaderMaterial({
-  side: THREE.BackSide,
-  uniforms: {
-    top: { value: new THREE.Color(0x87ceeb) },
-    bottom: { value: new THREE.Color(0xfafafa) }
-  },
-  vertexShader: `
-    varying vec3 vPos;
-    void main() {
-      vPos = position;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-    }
-  `,
-  fragmentShader: `
-    uniform vec3 top;
-    uniform vec3 bottom;
-    varying vec3 vPos;
-    void main() {
-      float h = normalize(vPos).y * 0.5 + 0.5;
-      gl_FragColor = vec4(mix(bottom, top, h), 1.0);
-    }
-  `
-});
-scene.add(new THREE.Mesh(skyGeo, skyMat));
+function init() {
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87ceeb);
 
-/* ===================== LIGHT ===================== */
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-sun.position.set(100, 200, 100);
-scene.add(sun);
-
-/* ===================== GROUND ===================== */
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(500, 500),
-  new THREE.MeshStandardMaterial({ color: 0x3f7d3c })
-);
-ground.rotation.x = -Math.PI / 2;
-scene.add(ground);
-
-/* ===================== GRASS (LIGHTWEIGHT) ===================== */
-for (let i = 0; i < 1200; i++) {
-  const blade = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.1, 0.8),
-    new THREE.MeshStandardMaterial({ color: 0x4caf50, side: THREE.DoubleSide })
-  );
-  blade.position.set(
-    (Math.random() - 0.5) * 300,
-    0.4,
-    (Math.random() - 0.5) * 300
-  );
-  blade.rotation.y = Math.random() * Math.PI;
-  scene.add(blade);
-}
-
-/* ===================== ROAD (FIXED) ===================== */
-const road = new THREE.Mesh(
-  new THREE.BoxGeometry(10, 0.1, 300),
-  new THREE.MeshStandardMaterial({ color: 0x5d4037 })
-);
-road.position.y = 0.05;
-scene.add(road);
-
-/* ===================== PLAYER ===================== */
-const player = new THREE.Group();
-const body = new THREE.Mesh(
-  new THREE.CapsuleGeometry(0.6, 1.2, 4, 8),
-  new THREE.MeshStandardMaterial({ color: 0x111 })
-);
-body.position.y = 1.5;
-player.add(body);
-scene.add(player);
-player.position.z = 20;
-
-/* ===================== CAMERA CONTROL ===================== */
-let yaw = 0;
-let pitch = 0;
-
-document.body.addEventListener("click", () => {
-  renderer.domElement.requestPointerLock();
-});
-
-document.addEventListener("mousemove", e => {
-  if (document.pointerLockElement !== renderer.domElement) return;
-  yaw -= e.movementX * 0.002;
-  pitch -= e.movementY * 0.002;
-  pitch = Math.max(-0.5, Math.min(0.5, pitch));
-});
-
-/* ===================== MOVEMENT ===================== */
-const keys = {};
-addEventListener("keydown", e => keys[e.code] = true);
-addEventListener("keyup", e => keys[e.code] = false);
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  const forward = new THREE.Vector3(
-    Math.sin(yaw),
-    0,
-    Math.cos(yaw)
-  );
-
-  if (keys.KeyW) player.position.addScaledVector(forward, -0.15);
-  if (keys.KeyS) player.position.addScaledVector(forward, 0.15);
-
-  camera.position.set(
-    player.position.x - Math.sin(yaw) * 6,
-    player.position.y + 4,
-    player.position.z - Math.cos(yaw) * 6
-  );
-  camera.lookAt(
-    player.position.x,
-    player.position.y + 2,
-    player.position.z
-  );
-
-  renderer.render(scene, camera);
-}
-animate();
-
-/* ===================== RESIZE ===================== */
-addEventListener("resize", () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
+  const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(innerWidth, innerHeight);
-});
+  document.body.appendChild(renderer.domElement);
+
+  /* ☀️ SUN */
+  const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+  sun.position.set(50, 100, 50);
+  scene.add(sun);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+  const sunSphere = new THREE.Mesh(
+    new THREE.SphereGeometry(5, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xffee88 })
+  );
+  sunSphere.position.copy(sun.position);
+  scene.add(sunSphere);
+
+  /* ☁️ CLOUDS */
+  for (let i = 0; i < 8; i++) {
+    const cloud = new THREE.Mesh(
+      new THREE.SphereGeometry(4, 12, 12),
+      new THREE.MeshStandardMaterial({ color: 0xffffff })
+    );
+    cloud.position.set(
+      Math.random() * 100 - 50,
+      25 + Math.random() * 10,
+      Math.random() * -100
+    );
+    scene.add(cloud);
+  }
+
+  /* 🌍 GROUND */
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(300, 300),
+    new THREE.MeshStandardMaterial({ color: 0x4caf50 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  scene.add(ground);
+
+  /* 🛣 ROAD (SINGLE PLANE – NO BREAKING) */
+  const road = new THREE.Mesh(
+    new THREE.PlaneGeometry(12, 300),
+    new THREE.MeshStandardMaterial({ color: 0x6d4c41 })
+  );
+  road.rotation.x = -Math.PI / 2;
+  scene.add(road);
+
+  /* 🧍 THIRD-PERSON CHARACTER */
+  const player = new THREE.Group();
+
+  const body = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.6, 1.2, 4, 8),
+    new THREE.MeshStandardMaterial({ color: 0x333333 })
+  );
+  body.position.y = 1.5;
+  player.add(body);
+
+  scene.add(player);
+  player.position.set(0, 0, 10);
+
+  /* 🎥 CAMERA FOLLOW */
+  let yaw = 0, pitch = 0;
+  document.addEventListener("mousemove", e => {
+    yaw -= e.movementX * 0.002;
+    pitch -= e.movementY * 0.002;
+    pitch = Math.max(-0.6, Math.min(0.6, pitch));
+  });
+
+  /* 🏠 HOUSE FUNCTION */
+  function createHouse(x, z, color) {
+    const house = new THREE.Group();
+
+    const base = new THREE.Mesh(
+      new THREE.BoxGeometry(6, 4, 6),
+      new THREE.MeshStandardMaterial({ color })
+    );
+    base.position.y = 2;
+    house.add(base);
+
+    const roof = new THREE.Mesh(
+      new THREE.ConeGeometry(5, 3, 4),
+      new THREE.MeshStandardMaterial({ color: 0x8d6e63 })
+    );
+    roof.position.y = 5;
+    roof.rotation.y = Math.PI / 4;
+    house.add(roof);
+
+    const door = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.5, 2.5),
+      new THREE.MeshStandardMaterial({ color: 0xffffff })
+    );
+    door.position.set(0, 1.25, 3.01);
+    house.add(door);
+
+    house.position.set(x, 0, z);
+    scene.add(house);
+  }
+
+  createHouse(-15, -20, 0xffcc80); // Home
+  createHouse(15, -40, 0x90caf9);  // Photos
+  createHouse(-15, -60, 0xa5d6a7); // About
+  createHouse(15, -80, 0xf48fb1);  // Contact
+
+  /* ⌨️ CONTROLS */
+  const keys = {};
+  document.addEventListener("keydown", e => keys[e.code] = true);
+  document.addEventListener("keyup", e => keys[e.code] = false);
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const speed = 0.15;
+    const forward = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+
+    if (keys.KeyW) player.position.addScaledVector(forward, -speed);
+    if (keys.KeyS) player.position.addScaledVector(forward, speed);
+    if (keys.KeyA) player.position.x -= speed;
+    if (keys.KeyD) player.position.x += speed;
+
+    camera.position.set(
+      player.position.x - Math.sin(yaw) * 6,
+      player.position.y + 4 + pitch * 4,
+      player.position.z - Math.cos(yaw) * 6
+    );
+    camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  window.addEventListener("resize", () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+}
 </script>
 </body>
 </html>
