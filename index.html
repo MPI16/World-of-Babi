@@ -244,6 +244,82 @@ window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 </script>
+  
+<script>
+/* =====================================================
+   MOVEMENT OVERRIDE (ADD-ONLY, NON-DESTRUCTIVE)
+   - Swaps W / S
+   - Adds A / D strafing
+   - Fixes walk animation
+===================================================== */
+
+const STRAFE_SPEED = 0.18;
+const WALK_SPEED = 0.18;
+
+let lastPos = new THREE.Vector3();
+
+function movementOverride() {
+  requestAnimationFrame(movementOverride);
+
+  if (!player) return;
+
+  // Direction vectors based on camera yaw
+  const forward = new THREE.Vector3(
+    Math.sin(yaw),
+    0,
+    Math.cos(yaw)
+  );
+
+  const right = new THREE.Vector3(
+    Math.sin(yaw + Math.PI / 2),
+    0,
+    Math.cos(yaw + Math.PI / 2)
+  );
+
+  let moved = false;
+
+  /* -------- SWAP W / S -------- */
+  if (keys.KeyS) { // S = forward
+    player.position.addScaledVector(forward, -WALK_SPEED);
+    moved = true;
+  }
+  if (keys.KeyW) { // W = backward
+    player.position.addScaledVector(forward, WALK_SPEED);
+    moved = true;
+  }
+
+  /* -------- A / D STRAFE -------- */
+  if (keys.KeyA) {
+    player.position.addScaledVector(right, -STRAFE_SPEED);
+    moved = true;
+  }
+  if (keys.KeyD) {
+    player.position.addScaledVector(right, STRAFE_SPEED);
+    moved = true;
+  }
+
+  /* -------- WALK ANIMATION FIX -------- */
+  if (moved) {
+    walk += 0.15;
+    armL.rotation.x = Math.sin(walk) * 0.6;
+    armR.rotation.x = -Math.sin(walk) * 0.6;
+    legL.rotation.x = -Math.sin(walk) * 0.6;
+    legR.rotation.x = Math.sin(walk) * 0.6;
+  } else {
+    // Idle reset (soft)
+    armL.rotation.x *= 0.8;
+    armR.rotation.x *= 0.8;
+    legL.rotation.x *= 0.8;
+    legR.rotation.x *= 0.8;
+  }
+
+  lastPos.copy(player.position);
+}
+
+// Start override loop
+movementOverride();
+</script>
 
 </body>
 </html>
+
