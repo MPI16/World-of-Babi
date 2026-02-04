@@ -147,10 +147,13 @@ scene.add(sunMesh);
   if (!pointerActive) return;
   yaw -= e.movementX * 0.002;
   pitch -= e.movementY * 0.002;
-  camera.position.x = player.position.x - Math.sin(yaw) * Math.cos(pitch) * 6;
-  camera.position.y = player.position.y + 2 + Math.sin(pitch) * 6;
-  camera.position.z = player.position.z - Math.cos(yaw) * Math.cos(pitch) * 6;
-  camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
+  pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+  camera.position.set(
+    player.position.x - Math.sin(yaw) * 6 * Math.cos(pitch),
+    player.position.y + 4 + Math.sin(pitch) * 6,
+    player.position.z - Math.cos(yaw) * 6 * Math.cos(pitch)
+  );
+  camera.lookAt(player.position);
 });
 
   /* ===================== MOVEMENT ===================== */
@@ -167,7 +170,7 @@ scene.add(sunMesh);
   /* ===================== ANIMATION LOOP ===================== */
   function animate() {
     requestAnimationFrame(animate);
-    camera.rotation.order = 'YXZ';
+   camera.rotation.set(pitch, yaw, 0, 'YXZ');
 
     // Day / night
     const t = Date.now() * 0.00005;
@@ -287,5 +290,6 @@ scene.add(sunMesh);
 
 </body>
 </html>
+
 
 
