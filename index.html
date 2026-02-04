@@ -151,11 +151,10 @@ document.addEventListener("mousemove", e => {
   pitch -= e.movementY * 0.002;
   pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
 
-  camera.position.x = player.position.x + Math.sin(yaw) * Math.cos(pitch) * 6;
+  camera.rotation.set(pitch, yaw, 0, 'YXZ');
+  camera.position.x = player.position.x - Math.sin(yaw) * 6 * Math.cos(pitch);
   camera.position.y = player.position.y + 2 + Math.sin(pitch) * 6;
-  camera.position.z = player.position.z + Math.cos(yaw) * Math.cos(pitch) * 6;
-
-  camera.lookAt(player.position);
+  camera.position.z = player.position.z - Math.cos(yaw) * 6 * Math.cos(pitch);
 });
 
   /* ===================== MOVEMENT ===================== */
@@ -172,17 +171,10 @@ document.addEventListener("mousemove", e => {
   /* ===================== ANIMATION LOOP ===================== */
   function animate() {
     requestAnimationFrame(animate);
-camera.rotation.set(pitch, yaw, 0, 'YXZ');
   renderer.render(scene, camera);
 
-    camera.position.lerp(
-  new THREE.Vector3(
-    player.position.x + Math.sin(yaw) * Math.cos(pitch) * 6,
-    player.position.y + 2 + Math.sin(pitch) * 6,
-    player.position.z + Math.cos(yaw) * Math.cos(pitch) * 6
-  ),
-  0.1
-);
+
+  
 
 
     // Day / night
@@ -303,6 +295,7 @@ camera.rotation.set(pitch, yaw, 0, 'YXZ');
 
 </body>
 </html>
+
 
 
 
