@@ -143,21 +143,20 @@ scene.add(sunMesh);
     document.body.style.cursor = pointerActive ? "none" : "default";
   });
 
+let cameraTarget = new THREE.Vector3();
+
 document.addEventListener("mousemove", e => {
   if (!pointerActive) return;
   yaw -= e.movementX * 0.002;
   pitch -= e.movementY * 0.002;
   pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
 
-  camera.position.x = player.position.x - Math.sin(yaw) * 6;
-  camera.position.y = player.position.y + 2 + Math.sin(pitch) * 3;
-  camera.position.z = player.position.z - Math.cos(yaw) * 6;
+  cameraTarget.x = player.position.x + Math.sin(yaw) * Math.cos(pitch) * 6;
+  cameraTarget.y = player.position.y + 2 + Math.sin(pitch) * 6;
+  cameraTarget.z = player.position.z + Math.cos(yaw) * Math.cos(pitch) * 6;
 
-  camera.lookAt(
-    player.position.x + Math.sin(yaw) * Math.cos(pitch),
-    player.position.y + 2 + Math.sin(pitch),
-    player.position.z + Math.cos(yaw) * Math.cos(pitch)
-  );
+  camera.position.copy(cameraTarget);
+  camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
 });
 
   /* ===================== MOVEMENT ===================== */
@@ -174,7 +173,10 @@ document.addEventListener("mousemove", e => {
   /* ===================== ANIMATION LOOP ===================== */
   function animate() {
     requestAnimationFrame(animate);
-   camera.rotation.set(pitch, yaw, 0, 'YXZ');
+   camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
+
+  renderer.render(scene, camera);
+}
 
     // Day / night
     const t = Date.now() * 0.00005;
@@ -294,6 +296,7 @@ document.addEventListener("mousemove", e => {
 
 </body>
 </html>
+
 
 
 
