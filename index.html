@@ -11,14 +11,13 @@ html, body {
   background: #87ceeb;
   font-family: sans-serif;
 }
-
 #start {
   position: fixed;
   inset: 0;
+  background: #87ceeb;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #87ceeb;
   font-size: 26px;
   cursor: pointer;
   z-index: 10;
@@ -27,16 +26,12 @@ html, body {
 </head>
 
 <body>
-
 <div id="start">Click to Start 🌞</div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
 <script>
-let started = false;
 document.getElementById("start").onclick = () => {
-  if (started) return;
-  started = true;
   document.getElementById("start").remove();
   init();
 };
@@ -45,78 +40,79 @@ function init() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x87ceeb);
 
-  const camera = new THREE.PerspectiveCamera(
-    75, window.innerWidth / window.innerHeight, 0.1, 1000
-  );
-  camera.position.set(0, 2, 8);
-
+  const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(innerWidth, innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  // Light
-  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const sun = new THREE.DirectionalLight(0xffffff, 1);
-  sun.position.set(10, 20, 10);
+  /* ☀️ SUN */
+  const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+  sun.position.set(50, 100, 50);
   scene.add(sun);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-  // Ground
+  const sunSphere = new THREE.Mesh(
+    new THREE.SphereGeometry(5, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xffee88 })
+  );
+  sunSphere.position.copy(sun.position);
+  scene.add(sunSphere);
+
+  /* ☁️ CLOUDS */
+  for (let i = 0; i < 8; i++) {
+    const cloud = new THREE.Mesh(
+      new THREE.SphereGeometry(4, 12, 12),
+      new THREE.MeshStandardMaterial({ color: 0xffffff })
+    );
+    cloud.position.set(
+      Math.random() * 100 - 50,
+      25 + Math.random() * 10,
+      Math.random() * -100
+    );
+    scene.add(cloud);
+  }
+
+  /* 🌍 GROUND */
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(200, 200),
-    new THREE.MeshStandardMaterial({ color: 0x55aa55 })
+    new THREE.PlaneGeometry(300, 300),
+    new THREE.MeshStandardMaterial({ color: 0x4caf50 })
   );
   ground.rotation.x = -Math.PI / 2;
   scene.add(ground);
 
-  // Dirt road
+  /* 🛣 ROAD (SINGLE PLANE – NO BREAKING) */
   const road = new THREE.Mesh(
-    new THREE.PlaneGeometry(8, 200),
-    new THREE.MeshStandardMaterial({ color: 0x8b5a2b })
+    new THREE.PlaneGeometry(12, 300),
+    new THREE.MeshStandardMaterial({ color: 0x6d4c41 })
   );
   road.rotation.x = -Math.PI / 2;
   scene.add(road);
 
-  // Houses
-  const pages = ["Home", "Photos", "About", "Contact"];
-  pages.forEach((name, i) => {
-    const house = new THREE.Mesh(
-      new THREE.BoxGeometry(4, 3, 4),
-      new THREE.MeshStandardMaterial({ color: 0xffffff })
-    );
-    house.position.set(
-      i % 2 === 0 ? -10 : 10,
-      1.5,
-      -i * 20
-    );
-    house.userData.page = name;
-    scene.add(house);
-  });
+  /* 🧍 THIRD-PERSON CHARACTER */
+  const player = new THREE.Group();
 
-  // Movement
-  const keys = {};
-  document.addEventListener("keydown", e => keys[e.code] = true);
-  document.addEventListener("keyup", e => keys[e.code] = false);
+  const body = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.6, 1.2, 4, 8),
+    new THREE.MeshStandardMaterial({ color: 0x333333 })
+  );
+  body.position.y = 1.5;
+  player.add(body);
 
-  let yaw = 0;
+  scene.add(player);
+  player.position.set(0, 0, 10);
+
+  /* 🎥 CAMERA FOLLOW */
+  let yaw = 0, pitch = 0;
   document.addEventListener("mousemove", e => {
     yaw -= e.movementX * 0.002;
-    camera.rotation.y = yaw;
+    pitch -= e.movementY * 0.002;
+    pitch = Math.max(-0.6, Math.min(0.6, pitch));
   });
 
-  function animate() {
-    requestAnimationFrame(animate);
+  /* 🏠 HOUSE FUNCTION */
+  function createHouse(x, z, color) {
+    const house = new THREE.Group();
 
-    const speed = 0.15;
-    if (keys.KeyW) camera.position.z -= speed;
-    if (keys.KeyS) camera.position.z += speed;
-    if (keys.KeyA) camera.position.x -= speed;
-    if (keys.KeyD) camera.position.x += speed;
+    const base = new THREE.Mesh(
+      new THREE.BoxGeome
 
-    renderer.render(scene, camera);
-  }
-  animate();
-}
-</script>
-
-</body>
-</html>
