@@ -1,35 +1,171 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Home</title>
+<meta charset="UTF-8" />
+<title>World of Babi</title>
+
 <style>
-body {
+html, body {
   margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: #111;
+  overflow: hidden;
+  background: #000;
 }
-img {
-  width: 70%;
-  border-radius: 12px;
-  transition: opacity 0.6s;
+canvas {
+  display: block;
+}
+#fade {
+  position: fixed;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+  z-index: 10;
 }
 </style>
 </head>
+
 <body>
+<div id="fade"></div>
 
-<img id="slide" src="1.jpg">
-
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
-const slides = ["1.jpg","2.jpg","3.jpg","4.jpg"];
-let i = 0;
-setInterval(() => {
-  i = (i + 1) % slides.length;
-  document.getElementById("slide").src = slides[i];
-}, 2500);
-</script>
+/* ===================== BASIC SETUP ===================== */
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
 
+/* ===================== SKY (PRO) ===================== */
+const skyGeo = new THREE.SphereGeometry(500, 32, 32);
+const skyMat = new THREE.ShaderMaterial({
+  side: THREE.BackSide,
+  uniforms: {
+    top: { value: new THREE.Color(0x87ceeb) },
+    bottom: { value: new THREE.Color(0xfafafa) }
+  },
+  vertexShader: `
+    varying vec3 vPos;
+    void main() {
+      vPos = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 top;
+    uniform vec3 bottom;
+    varying vec3 vPos;
+    void main() {
+      float h = normalize(vPos).y * 0.5 + 0.5;
+      gl_FragColor = vec4(mix(bottom, top, h), 1.0);
+    }
+  `
+});
+scene.add(new THREE.Mesh(skyGeo, skyMat));
+
+/* ===================== LIGHT ===================== */
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+sun.position.set(100, 200, 100);
+scene.add(sun);
+
+/* ===================== GROUND ===================== */
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(500, 500),
+  new THREE.MeshStandardMaterial({ color: 0x3f7d3c })
+);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+/* ===================== GRASS (LIGHTWEIGHT) ===================== */
+for (let i = 0; i < 1200; i++) {
+  const blade = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.1, 0.8),
+    new THREE.MeshStandardMaterial({ color: 0x4caf50, side: THREE.DoubleSide })
+  );
+  blade.position.set(
+    (Math.random() - 0.5) * 300,
+    0.4,
+    (Math.random() - 0.5) * 300
+  );
+  blade.rotation.y = Math.random() * Math.PI;
+  scene.add(blade);
+}
+
+/* ===================== ROAD (FIXED) ===================== */
+const road = new THREE.Mesh(
+  new THREE.BoxGeometry(10, 0.1, 300),
+  new THREE.MeshStandardMaterial({ color: 0x5d4037 })
+);
+road.position.y = 0.05;
+scene.add(road);
+
+/* ===================== PLAYER ===================== */
+const player = new THREE.Group();
+const body = new THREE.Mesh(
+  new THREE.CapsuleGeometry(0.6, 1.2, 4, 8),
+  new THREE.MeshStandardMaterial({ color: 0x111 })
+);
+body.position.y = 1.5;
+player.add(body);
+scene.add(player);
+player.position.z = 20;
+
+/* ===================== CAMERA CONTROL ===================== */
+let yaw = 0;
+let pitch = 0;
+
+document.body.addEventListener("click", () => {
+  renderer.domElement.requestPointerLock();
+});
+
+document.addEventListener("mousemove", e => {
+  if (document.pointerLockElement !== renderer.domElement) return;
+  yaw -= e.movementX * 0.002;
+  pitch -= e.movementY * 0.002;
+  pitch = Math.max(-0.5, Math.min(0.5, pitch));
+});
+
+/* ===================== MOVEMENT ===================== */
+const keys = {};
+addEventListener("keydown", e => keys[e.code] = true);
+addEventListener("keyup", e => keys[e.code] = false);
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const forward = new THREE.Vector3(
+    Math.sin(yaw),
+    0,
+    Math.cos(yaw)
+  );
+
+  if (keys.KeyW) player.position.addScaledVector(forward, -0.15);
+  if (keys.KeyS) player.position.addScaledVector(forward, 0.15);
+
+  camera.position.set(
+    player.position.x - Math.sin(yaw) * 6,
+    player.position.y + 4,
+    player.position.z - Math.cos(yaw) * 6
+  );
+  camera.lookAt(
+    player.position.x,
+    player.position.y + 2,
+    player.position.z
+  );
+
+  renderer.render(scene, camera);
+}
+animate();
+
+/* ===================== RESIZE ===================== */
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
 </body>
 </html>
